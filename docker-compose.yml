@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  database:
+    image: postgres:13.0
+    restart: always
+    ports:
+      - 54322:5432
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'CityTransportDB'
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
