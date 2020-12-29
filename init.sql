@@ -129,7 +129,7 @@ CREATE TABLE "Benefit_ticket" (
 SELECT 'Создаем таблицу "Top_UPs_Benefits"' AS msg;
 CREATE TABLE "Top_UPs_Benefits" (
     id SERIAL PRIMARY KEY,
-    ticket_id INTEGER REFERENCES "Balance_ticket"(id) NOT NULL,
+    ticket_id INTEGER REFERENCES "Benefit_ticket"(id) NOT NULL,
     income FLOAT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -339,7 +339,7 @@ CREATE TRIGGER PAYMENT_TRIGGER AFTER INSERT ON "Top_UPs_Balance"
 SELECT 'Создаем триггер на продление льготных билетов' AS msg;
 CREATE FUNCTION benefit_top_up() RETURNS trigger AS $$
     BEGIN
-        IF (SELECT expires_date FROM "Benefit_ticket" WHERE id = NEW.ticket_id) > NOW() THEN
+        IF (SELECT expires_date FROM "Benefit_ticket" WHERE id = NEW.ticket_id) < NOW() THEN
             IF NEW.income >= (SELECT bt.cost FROM "Benefit_types" bt 
                 inner join "Benefit_ticket" b on b.benefit_type_id = bt.id 
                 WHERE b.id = NEW.ticket_id
@@ -420,32 +420,32 @@ $$ LANGUAGE plpgsql;
 
 
 
-SELECT 'Создаем билеты' AS msg;
+-- SELECT 'Создаем билеты' AS msg;
 
--- trips
-SELECT create_trips_ticket(10);
-SELECT create_trips_ticket(5);
-SELECT create_trips_ticket(2);
-SELECT create_trips_ticket(1);
+-- -- trips
+-- SELECT create_trips_ticket(10);
+-- SELECT create_trips_ticket(5);
+-- SELECT create_trips_ticket(2);
+-- SELECT create_trips_ticket(1);
 
-select * from "Ticket";
-select * from "Trips_ticket";
+-- select * from "Ticket";
+-- select * from "Trips_ticket";
 
--- balance
-SELECT create_balance_ticket();
-SELECT create_balance_ticket(100);
-SELECT create_balance_ticket(500);
+-- -- balance
+-- SELECT create_balance_ticket();
+-- SELECT create_balance_ticket(100);
+-- SELECT create_balance_ticket(500);
 
-select * from "Ticket";
-select * from "Balance_ticket";
+-- select * from "Ticket";
+-- select * from "Balance_ticket";
 
--- benefits
-SELECT create_benefit_ticket('Пенсионный');
-SELECT create_benefit_ticket('Студенческий', 700);
-SELECT create_benefit_ticket('Студенческий', 500);
+-- -- benefits
+-- SELECT create_benefit_ticket('Пенсионный');
+-- SELECT create_benefit_ticket('Студенческий', 700);
+-- SELECT create_benefit_ticket('Студенческий', 500);
 
-select * from "Ticket";
-select * from "Benefit_ticket";
+-- select * from "Ticket";
+-- select * from "Benefit_ticket";
 
 
 SELECT 'Создаем пользователя "admin"' AS msg;
