@@ -420,32 +420,32 @@ $$ LANGUAGE plpgsql;
 
 
 
--- SELECT 'Создаем билеты' AS msg;
+SELECT 'Создаем билеты' AS msg;
 
--- -- trips
--- SELECT create_trips_ticket(10);
--- SELECT create_trips_ticket(5);
--- SELECT create_trips_ticket(2);
--- SELECT create_trips_ticket(1);
+-- trips
+SELECT create_trips_ticket(10);
+SELECT create_trips_ticket(5);
+SELECT create_trips_ticket(2);
+SELECT create_trips_ticket(1);
 
--- select * from "Ticket";
--- select * from "Trips_ticket";
+select * from "Ticket";
+select * from "Trips_ticket";
 
--- -- balance
--- SELECT create_balance_ticket();
--- SELECT create_balance_ticket(100);
--- SELECT create_balance_ticket(500);
+-- balance
+SELECT create_balance_ticket();
+SELECT create_balance_ticket(100);
+SELECT create_balance_ticket(500);
 
--- select * from "Ticket";
--- select * from "Balance_ticket";
+select * from "Ticket";
+select * from "Balance_ticket";
 
--- -- benefits
--- SELECT create_benefit_ticket('Пенсионный');
--- SELECT create_benefit_ticket('Студенческий', 700);
--- SELECT create_benefit_ticket('Студенческий', 500);
+-- benefits
+SELECT create_benefit_ticket('Пенсионный');
+SELECT create_benefit_ticket('Студенческий', 700);
+SELECT create_benefit_ticket('Студенческий', 500);
 
--- select * from "Ticket";
--- select * from "Benefit_ticket";
+select * from "Ticket";
+select * from "Benefit_ticket";
 
 
 SELECT 'Создаем пользователя "admin"' AS msg;
