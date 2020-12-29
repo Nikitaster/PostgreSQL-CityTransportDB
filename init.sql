@@ -96,7 +96,7 @@ SELECT 'Создаем таблицу "Balance_ticket"' AS msg;
 CREATE TABLE "Balance_ticket" (
     id SERIAL PRIMARY KEY,
     ticket_id INTEGER REFERENCES "Ticket"(id) NOT NULL,
-    balance INTEGER NOT NULL
+    balance FLOAT NOT NULL
 );
 
 
@@ -135,8 +135,22 @@ CREATE TABLE "Top_UPs_Benefits" (
 );
 
 
+SELECT 'Создаем таблицу "TripsTicketCost"' AS msg;
+CREATE TABLE "TripsTicketCost" (
+    id SERIAL PRIMARY KEY,
+    trips_amount INTEGER NOT NULL,
+    trips_cost FLOAT NOT NULL
+);
+
+SELECT 'Заполняем таблицу "TripsTicketCost"' AS msg;
+INSERT INTO "TripsTicketCost"(trips_amount, trips_cost) values (1, 55);
+INSERT INTO "TripsTicketCost"(trips_amount, trips_cost) values (2, 100);
+INSERT INTO "TripsTicketCost"(trips_amount, trips_cost) values (5, 300);
+INSERT INTO "TripsTicketCost"(trips_amount, trips_cost) values (10, 600);
+
+
 SELECT 'Заполняем таблицу "VehicleTypes"' AS msg;
-INSERT INTO ""(type_name, seats_number, price) values ('Автобус', 90, 55);
+INSERT INTO "VehicleTypes"(type_name, seats_number, price) values ('Автобус', 90, 55);
 INSERT INTO "VehicleTypes"(type_name, seats_number, price) values ('Микроавтобус', 15, 55);
 INSERT INTO "VehicleTypes"(type_name, seats_number, price) values ('Электробус', 90, 55);
 
@@ -346,17 +360,21 @@ CREATE TRIGGER PAYMENT_TRIGGER BEFORE INSERT ON "Top_UPs_Benefits"
 
 
 SELECT 'Создаем функцию для создания билетов с поездками' AS msg;
-CREATE FUNCTION create_trips_ticket(trips_amount INTEGER)
+CREATE FUNCTION create_trips_ticket(trips_amount_input INTEGER)
 RETURNS INTEGER AS $$
     DECLARE
     new_id INTEGER := 0;
     BEGIN
-        INSERT INTO "Ticket" DEFAULT VALUES;
-        new_id := (SELECT id from "Ticket" order by id desc limit 1);
-        INSERT INTO "Trips_ticket"(ticket_id, trips_amount) VALUES (
-            new_id,
-            trips_amount);
-        RETURN new_id;
+        IF EXISTS (SELECT ttc.trips_amount FROM "TripsTicketCost" ttc WHERE trips_amount_input = ttc.trips_amount) THEN
+            INSERT INTO "Ticket" DEFAULT VALUES;
+            new_id := (SELECT id from "Ticket" order by id desc limit 1);
+            INSERT INTO "Trips_ticket"(ticket_id, trips_amount) VALUES (
+                new_id,
+                trips_amount_input);
+            RETURN new_id;
+        ELSE
+            RAISE EXCEPTION 'Билет с таким количеством поездок купить нельзя!';
+        END IF;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -408,6 +426,7 @@ SELECT 'Создаем билеты' AS msg;
 SELECT create_trips_ticket(10);
 SELECT create_trips_ticket(5);
 SELECT create_trips_ticket(2);
+SELECT create_trips_ticket(1);
 
 select * from "Ticket";
 select * from "Trips_ticket";
@@ -445,7 +464,7 @@ GRANT CONNECT ON DATABASE "CityTransportDB" to "user";
 GRANT INSERT ON "Payments", "Top_UPs_Balance", "Top_UPs_Benefits" to "user";
 GRANT EXECUTE ON FUNCTION balance_top_up, benefit_top_up to "user";
 GRANT SELECT ON "Stops_route", "Route", "Stop", "Benefit_types", "VehicleTypes", "Vehicle" to "user";
-GRANT SELECT ON "Ticket", "Benefit_ticket", "Balance_ticket", "Trips_ticket" to "user";
+GRANT SELECT ON "Ticket", "Benefit_ticket", "Balance_ticket", "Trips_ticket", "TripsTicketCost" to "user";
 GRANT UPDATE ON "Balance_ticket", "Benefit_ticket", "Trips_ticket" to "user";
 GRANT USAGE, SELECT ON SEQUENCE "Top_UPs_Balance_id_seq", "Top_UPs_Benefits_id_seq", "Payments_id_seq" TO "user";
 
@@ -455,7 +474,7 @@ CREATE USER ticket_seller WITH ENCRYPTED PASSWORD 'ticket_seller';
 GRANT CONNECT ON DATABASE "CityTransportDB" to "ticket_seller";
 GRANT EXECUTE ON FUNCTION create_balance_ticket, create_benefit_ticket, create_trips_ticket to "ticket_seller"; 
 GRANT INSERT, SELECT ON "Ticket", "Benefit_ticket", "Balance_ticket", "Trips_ticket" to "ticket_seller";
-GRANT SELECT ON "Benefit_types" to "ticket_seller";
+GRANT SELECT ON "Benefit_types", "TripsTicketCost" to "ticket_seller";
 GRANT USAGE, SELECT ON SEQUENCE "Ticket_id_seq", "Balance_ticket_id_seq", "Benefit_ticket_id_seq", "Trips_ticket_id_seq" TO "ticket_seller";
 
 -- создать пользователя "Водитель", доступ к транспорту
