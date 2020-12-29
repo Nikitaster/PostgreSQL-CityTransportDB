@@ -1,5 +1,3 @@
-
-
 SELECT 'Создаем таблицу "Roles"' AS msg;
 CREATE TABLE "Roles" (
     id SERIAL PRIMARY KEY,
@@ -138,7 +136,7 @@ CREATE TABLE "Top_UPs_Benefits" (
 
 
 SELECT 'Заполняем таблицу "VehicleTypes"' AS msg;
-INSERT INTO "VehicleTypes"(type_name, seats_number, price) values ('Автобус', 90, 55);
+INSERT INTO ""(type_name, seats_number, price) values ('Автобус', 90, 55);
 INSERT INTO "VehicleTypes"(type_name, seats_number, price) values ('Микроавтобус', 15, 55);
 INSERT INTO "VehicleTypes"(type_name, seats_number, price) values ('Электробус', 90, 55);
 
@@ -327,19 +325,23 @@ CREATE TRIGGER PAYMENT_TRIGGER AFTER INSERT ON "Top_UPs_Balance"
 SELECT 'Создаем триггер на продление льготных билетов' AS msg;
 CREATE FUNCTION benefit_top_up() RETURNS trigger AS $$
     BEGIN
-        IF NEW.income >= (SELECT bt.cost FROM "Benefit_types" bt 
-            inner join "Benefit_ticket" b on b.benefit_type_id = bt.id 
-            WHERE b.id = NEW.ticket_id
-        ) THEN
-            EXECUTE FORMAT('UPDATE "Benefit_ticket" SET expires_date = %L WHERE id = ' || NEW.ticket_id, ('now'::timestamp + '1 month'::interval));
+        IF (SELECT expires_date FROM "Benefit_ticket" WHERE id = NEW.ticket_id) > NOW() THEN
+            IF NEW.income >= (SELECT bt.cost FROM "Benefit_types" bt 
+                inner join "Benefit_ticket" b on b.benefit_type_id = bt.id 
+                WHERE b.id = NEW.ticket_id
+            ) THEN
+                EXECUTE FORMAT('UPDATE "Benefit_ticket" SET expires_date = %L WHERE id = ' || NEW.ticket_id, ('now'::timestamp + '1 month'::interval));
+            ELSE
+                RAISE EXCEPTION 'НЕ ХВАТАЕТ СРЕДСТВ ДЛЯ АКТИВАЦИИ ЛЬГОТНОГО ТАРИФА!';
+            END IF;
+            RETURN NEW;
         ELSE
-            RAISE EXCEPTION 'НЕ ХВАТАЕТ СРЕДСТВ ДЛЯ АКТИВАЦИИ ЛЬГОТНОГО ТАРИФА!';
+            RAISE EXCEPTION 'Билет уже активирован!';
         END IF;
-        RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER PAYMENT_TRIGGER AFTER INSERT ON "Top_UPs_Benefits"
+CREATE TRIGGER PAYMENT_TRIGGER BEFORE INSERT ON "Top_UPs_Benefits"
     FOR EACH ROW EXECUTE PROCEDURE benefit_top_up();
 
 
@@ -419,7 +421,6 @@ select * from "Ticket";
 select * from "Balance_ticket";
 
 -- benefits
-
 SELECT create_benefit_ticket('Пенсионный');
 SELECT create_benefit_ticket('Студенческий', 700);
 SELECT create_benefit_ticket('Студенческий', 500);
@@ -428,12 +429,41 @@ select * from "Ticket";
 select * from "Benefit_ticket";
 
 
-
-
-
 SELECT 'Создаем пользователя "admin"' AS msg;
 CREATE USER admin WITH ENCRYPTED PASSWORD 'admin';
 
 SELECT 'Выдаем полные парва пользователю "admin" к базе "CityTransportDB" и всем таблицам' AS msg;
 GRANT ALL PRIVILEGES ON DATABASE "CityTransportDB" to admin;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to admin;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public to admin;
+
+
+-- создать пользователя "User", может оплатить и пополнить билет
+SELECT 'Создаем пользователя "user"' AS msg;
+CREATE USER "user" WITH ENCRYPTED PASSWORD 'user';
+GRANT CONNECT ON DATABASE "CityTransportDB" to "user";
+GRANT INSERT ON "Payments", "Top_UPs_Balance", "Top_UPs_Benefits" to "user";
+GRANT EXECUTE ON FUNCTION balance_top_up, benefit_top_up to "user";
+GRANT SELECT ON "Stops_route", "Route", "Stop", "Benefit_types", "VehicleTypes", "Vehicle" to "user";
+GRANT SELECT ON "Ticket", "Benefit_ticket", "Balance_ticket", "Trips_ticket" to "user";
+GRANT UPDATE ON "Balance_ticket", "Benefit_ticket", "Trips_ticket" to "user";
+GRANT USAGE, SELECT ON SEQUENCE "Top_UPs_Balance_id_seq", "Top_UPs_Benefits_id_seq", "Payments_id_seq" TO "user";
+
+-- создать пользователя "Кассир", может создавать билеты
+SELECT 'Создаем пользователя "ticket_seller"' AS msg;
+CREATE USER ticket_seller WITH ENCRYPTED PASSWORD 'ticket_seller';
+GRANT CONNECT ON DATABASE "CityTransportDB" to "ticket_seller";
+GRANT EXECUTE ON FUNCTION create_balance_ticket, create_benefit_ticket, create_trips_ticket to "ticket_seller"; 
+GRANT INSERT, SELECT ON "Ticket", "Benefit_ticket", "Balance_ticket", "Trips_ticket" to "ticket_seller";
+GRANT SELECT ON "Benefit_types" to "ticket_seller";
+GRANT USAGE, SELECT ON SEQUENCE "Ticket_id_seq", "Balance_ticket_id_seq", "Benefit_ticket_id_seq", "Trips_ticket_id_seq" TO "ticket_seller";
+
+-- создать пользователя "Водитель", доступ к транспорту
+SELECT 'Создаем пользователя "driver"' AS msg;
+CREATE USER driver WITH ENCRYPTED PASSWORD 'driver';
+GRANT CONNECT ON DATABASE "CityTransportDB" to "driver";
+GRANT SELECT ON "Stops_route", "Route", "Stop", "Vehicle", "VehicleTypes" to driver;
+GRANT UPDATE ON "Vehicle" to driver;
+
+-- TODO: Создание бекапа
+-- TODO: Восстановление из бекапа
