@@ -343,33 +343,89 @@ CREATE TRIGGER PAYMENT_TRIGGER AFTER INSERT ON "Top_UPs_Benefits"
     FOR EACH ROW EXECUTE PROCEDURE benefit_top_up();
 
 
+SELECT 'Создаем функцию для создания билетов с поездками' AS msg;
+CREATE FUNCTION create_trips_ticket(trips_amount INTEGER)
+RETURNS INTEGER AS $$
+    DECLARE
+    new_id INTEGER := 0;
+    BEGIN
+        INSERT INTO "Ticket" DEFAULT VALUES;
+        new_id := (SELECT id from "Ticket" order by id desc limit 1);
+        INSERT INTO "Trips_ticket"(ticket_id, trips_amount) VALUES (
+            new_id,
+            trips_amount);
+        RETURN new_id;
+    END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT 'Создаем функцию для создания билетов с балансом' AS msg;
+CREATE FUNCTION create_balance_ticket(balance FLOAT = 0)
+RETURNS INTEGER AS $$
+    DECLARE
+    new_id INTEGER := 0;
+    BEGIN
+        INSERT INTO "Ticket" DEFAULT VALUES;
+        new_id := (SELECT id from "Ticket" order by id desc limit 1);
+        INSERT INTO "Balance_ticket"(ticket_id, balance) VALUES (
+            new_id, balance);
+        RETURN new_id;
+    END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT 'Создаем функцию для создания льготных билетов' AS msg;
+CREATE FUNCTION create_benefit_ticket(benefit_name varchar(64), income FLOAT = 0)
+RETURNS INTEGER AS $$
+    DECLARE
+    new_id INTEGER := 0;
+    BEGIN
+        IF EXISTS (SELECT bt.id FROM "Benefit_types" bt WHERE benefit_name = bt.name) THEN
+            IF CAST((Select bt.cost FROM "Benefit_types" bt WHERE bt.name = benefit_name) as FLOAT) <= income THEN
+                INSERT INTO "Ticket" DEFAULT VALUES;
+                new_id := (SELECT id from "Ticket" order by id desc limit 1);
+                INSERT INTO "Benefit_ticket"(ticket_id, benefit_type_id, expires_date) VALUES (
+                    new_id,
+                    (SELECT id FROM "Benefit_types" where name = benefit_name),
+                    'now'::timestamp + '1 month'::interval);
+                RETURN new_id;
+            ELSE
+                RAISE EXCEPTION 'Недостаточно средств для активации льготного тарифа';
+            END IF;
+        ELSE
+            RAISE EXCEPTION 'Такой льготы не существует!';
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+
+
 SELECT 'Создаем билеты' AS msg;
 
-INSERT INTO "Ticket" DEFAULT VALUES;
-INSERT INTO "Trips_ticket"(ticket_id, trips_amount) VALUES (1, 2);
+-- trips
+SELECT create_trips_ticket(10);
+SELECT create_trips_ticket(5);
+SELECT create_trips_ticket(2);
 
-INSERT INTO "Payments" (ticket_id, vehicle) VALUES (1, 'A890BD');
-INSERT INTO "Payments" (ticket_id, vehicle) VALUES (1, 'A890BD');
-SELECT * FROM "Payments";
-SELECT * FROM "Trips_ticket";
+select * from "Ticket";
+select * from "Trips_ticket";
 
+-- balance
+SELECT create_balance_ticket();
+SELECT create_balance_ticket(100);
+SELECT create_balance_ticket(500);
 
-INSERT INTO "Ticket" DEFAULT VALUES;
-INSERT INTO "Balance_ticket"(ticket_id, balance) VALUES (2, 100);
+select * from "Ticket";
+select * from "Balance_ticket";
 
-INSERT INTO "Payments" (ticket_id, vehicle) VALUES (2, 'A890BD');
-INSERT INTO "Top_UPs_Balance"(ticket_id, income) values (1, 1000);
-SELECT * FROM "Payments";
-SELECT * FROM "Balance_ticket";
+-- benefits
 
+SELECT create_benefit_ticket('Пенсионный');
+SELECT create_benefit_ticket('Студенческий', 700);
+SELECT create_benefit_ticket('Студенческий', 500);
 
-INSERT INTO "Ticket" DEFAULT VALUES;
-INSERT INTO "Benefit_ticket"(ticket_id, benefit_type_id, expires_date) VALUES (3, 2, to_timestamp('01-01-2019', 'DD-MM-YYYY'));
-
--- INSERT INTO "Payments" (ticket_id, vehicle) VALUES (3, 'A890BD');
-INSERT INTO "Top_UPs_Benefits"(ticket_id, income) values (1, 1000);
-SELECT * FROM "Payments";
-SELECT * FROM "Benefit_ticket";
+select * from "Ticket";
+select * from "Benefit_ticket";
 
 
 
