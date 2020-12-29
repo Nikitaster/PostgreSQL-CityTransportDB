@@ -1,14 +1,5 @@
 
 
-SELECT 'Создаем пользователя "admin"' AS msg;
-CREATE USER admin WITH ENCRYPTED PASSWORD 'admin';
-
-SELECT 'Создаем базу данных "CityTransportDB"' AS msg;
-
-SELECT 'Выдаем все права пользователю "admin" к базе "CityTransportDB"' AS msg;
-GRANT ALL PRIVILEGES ON DATABASE "CityTransportDB" to admin;
-
-
 SELECT 'Создаем таблицу "Roles"' AS msg;
 CREATE TABLE "Roles" (
     id SERIAL PRIMARY KEY,
@@ -202,15 +193,15 @@ INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (7, 1, 7);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (8, 1, 8);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (9, 1, 9);
 
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (1, 2, 4);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (1, 2, 1);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (4, 2, 2);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (3, 2, 5);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (3, 2, 3);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (6, 2, 4);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (5, 2, 8);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (5, 2, 5);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (8, 2, 6);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (7, 2, 10);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 2, 3);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (13, 2, 12);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (7, 2, 7);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 2, 8);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (13, 2, 9);
 
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (9, 3, 1);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (14, 3, 2);
@@ -222,25 +213,25 @@ INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (4, 3, 7);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (2, 3, 8);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (1, 3, 9);
 
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 4, 4);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 4, 1);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (8, 4, 2);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (15, 4, 5);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (15, 4, 3);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (13, 4, 4);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 4, 8);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 4, 5);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (6, 4, 6);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (2, 4, 10);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (1, 4, 3);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (4, 4, 12);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (2, 4, 7);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (1, 4, 8);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (4, 4, 9);
 
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 5, 4);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (10, 5, 2);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (14, 5, 2);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (13, 5, 5);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (13, 5, 3);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (6, 5, 4);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (15, 5, 8);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (15, 5, 5);
 INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (8, 5, 6);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (7, 5, 10);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (2, 5, 3);
-INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (5, 5, 12);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (7, 5, 7);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (2, 5, 8);
+INSERT INTO "Stops_route" (stop_id, route_id, stop_number) values (5, 5, 9);
 
 
 SELECT 'Заполняем таблицу "Vehicle"' AS msg;
@@ -321,6 +312,37 @@ CREATE TRIGGER PAYMENT_TRIGGER BEFORE INSERT ON "Payments"
     FOR EACH ROW EXECUTE PROCEDURE payment_func();
 
 
+SELECT 'Создаем триггер на пополнение билета с балансом' AS msg;
+CREATE FUNCTION balance_top_up() RETURNS trigger AS $$
+    BEGIN
+        EXECUTE 'UPDATE "Balance_ticket" SET balance = balance + ' || NEW.income || ' WHERE id = ' || NEW.ticket_id;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER PAYMENT_TRIGGER AFTER INSERT ON "Top_UPs_Balance"
+    FOR EACH ROW EXECUTE PROCEDURE balance_top_up();
+
+
+SELECT 'Создаем триггер на продление льготных билетов' AS msg;
+CREATE FUNCTION benefit_top_up() RETURNS trigger AS $$
+    BEGIN
+        IF NEW.income >= (SELECT bt.cost FROM "Benefit_types" bt 
+            inner join "Benefit_ticket" b on b.benefit_type_id = bt.id 
+            WHERE b.id = NEW.ticket_id
+        ) THEN
+            EXECUTE FORMAT('UPDATE "Benefit_ticket" SET expires_date = %L WHERE id = ' || NEW.ticket_id, ('now'::timestamp + '1 month'::interval));
+        ELSE
+            RAISE EXCEPTION 'НЕ ХВАТАЕТ СРЕДСТВ ДЛЯ АКТИВАЦИИ ЛЬГОТНОГО ТАРИФА!';
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER PAYMENT_TRIGGER AFTER INSERT ON "Top_UPs_Benefits"
+    FOR EACH ROW EXECUTE PROCEDURE benefit_top_up();
+
+
 SELECT 'Создаем билеты' AS msg;
 
 INSERT INTO "Ticket" DEFAULT VALUES;
@@ -336,15 +358,26 @@ INSERT INTO "Ticket" DEFAULT VALUES;
 INSERT INTO "Balance_ticket"(ticket_id, balance) VALUES (2, 100);
 
 INSERT INTO "Payments" (ticket_id, vehicle) VALUES (2, 'A890BD');
+INSERT INTO "Top_UPs_Balance"(ticket_id, income) values (1, 1000);
 SELECT * FROM "Payments";
 SELECT * FROM "Balance_ticket";
 
 
 INSERT INTO "Ticket" DEFAULT VALUES;
-INSERT INTO "Benefit_ticket"(ticket_id, benefit_type_id, expires_date) VALUES (3, 1, to_timestamp('01-01-2024', 'DD-MM-YYYY'));
+INSERT INTO "Benefit_ticket"(ticket_id, benefit_type_id, expires_date) VALUES (3, 2, to_timestamp('01-01-2019', 'DD-MM-YYYY'));
 
-INSERT INTO "Payments" (ticket_id, vehicle) VALUES (3, 'A890BD');
+-- INSERT INTO "Payments" (ticket_id, vehicle) VALUES (3, 'A890BD');
+INSERT INTO "Top_UPs_Benefits"(ticket_id, income) values (1, 1000);
 SELECT * FROM "Payments";
 SELECT * FROM "Benefit_ticket";
 
 
+
+
+
+SELECT 'Создаем пользователя "admin"' AS msg;
+CREATE USER admin WITH ENCRYPTED PASSWORD 'admin';
+
+SELECT 'Выдаем полные парва пользователю "admin" к базе "CityTransportDB" и всем таблицам' AS msg;
+GRANT ALL PRIVILEGES ON DATABASE "CityTransportDB" to admin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to admin;
